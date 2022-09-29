@@ -246,10 +246,13 @@ function createFilesProject(project_name) {
     fs.writeFileSync(path.join(project_path, ".env"), makeEnvBoilerplate())
 
     console.log(chalk.green("cent application dependencies has been installed successfully"))
-    console.log(chalk.green("your project is ready to code.. Good Luck!"))
-
-    runCmd(autoRunServer)
-    runBrowser("http://localhost:5555/welcome")
+    console.log(chalk.green("your project is ready to code.. Good Luck!, following step bellow for running your project !!"))
+    console.log(chalk.green(`1. move to your project directory :`))
+    console.log(chalk.blue(`cd ${project_name}`))
+    console.log(chalk.green(`2. start server :`))
+    console.log(chalk.blue(`cent serve`))
+    console.log(chalk.green(`or`))
+    console.log(chalk.blue(`npm run dev`))
 }
 
 function CreateArguments() {
