@@ -175,9 +175,9 @@ function createWelcomeController() {
 } from "@centjs/core";
 import * as CentOrm from "@centjs/orm";
 
-@Controller("/")
-export default class Welcome {
-  @Get("/welcome")
+@Controller("/welcome")
+export default class Welcome_Controller {
+  @Get("/")
   public welcomeMessage(request: Request, response: Response) {
     response.json({
       message: "Welcome To CentJs Framework",
