@@ -15,6 +15,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robinson-juniardy/centjs-cli.git"
+  },
   "dependencies": {
     "chalk": "^4.1.0",
     "esm": "^3.2.25",
