@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-
+const { execSync } = require("child_process")
 const yargs = require("yargs/yargs");
 const { hideBin } = require("yargs/helpers");
 const argv = yargs(hideBin(process.argv)).argv;
 const path = require("path");
 const fs = require("fs");
 const inquirer = require("inquirer");
-const { makeControllerBoilerplate, makeModelBoilerplate } = require("./template/boilerplate");
+const { makeControllerBoilerplate, makeModelBoilerplate, makeTsConfigBoilerplate, makeIndexServerBoilerplate, makeDbConfigBoilerplate, makeEnvBoilerplate, makePackageJsonFile, makeWelcomeController } = require("./template/boilerplate");
 const prompt = inquirer.createPromptModule()
 const shell = require("shelljs")
 const chalk = require("chalk")
@@ -91,6 +91,167 @@ function MakeController(controllerName) {
     }
 }
 
+function runBrowser(url) {
+    const { platform } = require("os")
+    const { exec } = require('child_process');
+
+    const WINDOWS_PLATFORM = 'win32';
+    const MAC_PLATFORM = 'darwin';
+
+    const osPlatform = platform();
+
+    let command;
+
+    if (osPlatform === WINDOWS_PLATFORM) {
+    command = `start microsoft-edge:${url}`;
+    } else if (osPlatform === MAC_PLATFORM) {
+    command = `open -a "Google Chrome" ${url}`;
+    } else {
+    command = `google-chrome --no-sandbox ${url}`;
+    }
+
+    console.log(`executing command: ${command}`);
+
+    exec(command);
+}
+
+function runServer() {
+     const runCmd = (command) => {
+    try {
+        execSync(`${command}`, { stdio: "inherit" });
+    } catch (e) {
+        console.error(`failed to execute ${command}`, e);
+        return false;
+    }
+    return true;
+    };
+
+    const run = `npm run dev`
+
+    runCmd(run)
+}
+
+function MakeApp(AppName) {
+    const runCmd = (command) => {
+    try {
+        execSync(`${command}`, { stdio: "inherit" });
+    } catch (e) {
+        console.error(`failed to execute ${command}`, e);
+        return false;
+    }
+    return true;
+    };
+
+    // const repoName = process.argv[2];
+    const gitCheckoutCmd = `git clone --depth 1 https://github.com/robinson-juniardy/centjs-framework.git ${AppName}`;
+    const installDepsCmd = `cd ${AppName} && npm install`;
+
+    console.log(`generate CentJS ${AppName} project`);
+    const checkout = runCmd(gitCheckoutCmd);
+    if (!checkout) process.exit(-1);
+
+    try {
+        fs.rm(path.join(process.cwd(), AppName, "package.json"))
+        console.log(chalk.bgGreen("generating package.json"))
+
+    } catch (error) {
+        
+    }
+
+    console.log(`installing CentJS dependencies for ${AppName}`);
+    const installedDeps = runCmd(installDepsCmd);
+    if (!installedDeps) process.exit(-1);
+
+    console.log("Congratulations! You are ready. run the following commands to start");
+    console.log(`cd ${repoName} && cent serve`);
+}
+
+function createFilesProject(project_name) {
+
+    const runCmd = (command) => {
+        try {
+            execSync(`${command}`, { stdio: "inherit" });
+        } catch (e) {
+            console.error(`failed to execute ${command}`, e);
+            return false;
+        }
+        return true;
+    };
+
+    /**
+     * create project working dir
+     */
+    const project_path = path.join(process.cwd(), project_name)
+    shell.mkdir('-p', project_path)
+
+    /**
+     * generate project directory
+     */
+    const config_path       = path.join(project_path,"src/app/config")
+    const controller_path   = path.join(project_path,"src/app/controller")
+    const model_path        = path.join(project_path,"src/app/model")
+    const data_path         = path.join(project_path,"src/app/data")
+    const services_path     = path.join(project_path,"src/app/services")
+    const utils_path        = path.join(project_path,"src/app/utils")
+    
+
+    // create config path
+    shell.mkdir('-p', config_path)
+
+    //create controller path
+    shell.mkdir('-p', controller_path)
+
+    //create welcome controller path
+    shell.mkdir('-p', path.join(controller_path, "welcome"))
+
+    //create model path
+    shell.mkdir('-p', model_path)
+
+    //create data path
+    shell.mkdir('-p', data_path)
+
+    //create services path
+    shell.mkdir('-p', services_path)
+
+    //create utils path
+    shell.mkdir('-p', utils_path)
+
+    /**
+     * installing dependencies and more file
+     */
+    const installDepsCommand = `cd ${project_name} && npm install --save-dev @types/node ts-node @centjs/core @centjs/orm @types/cors @centjs/data reflect-metadata typescript @types/mssql @types/mysql @types/pg && npm install express dotenv cors mysql mssql pg`
+    const initGit = `cd ${project_name} && git init && echo node_modules>>.gitignore`
+    const autoRunServer = `cd ${project_name} && npm run dev`
+    
+    //create package json file
+    fs.writeFileSync(path.join(project_path, "package.json"), makePackageJsonFile(project_name))
+    runCmd(installDepsCommand)
+    runCmd(initGit)
+
+
+    // create default centjs tsconfig
+    fs.writeFileSync(path.join(project_path, "tsconfig.json"), makeTsConfigBoilerplate())
+
+    // create server file
+    fs.writeFileSync(path.join(project_path, "src/index.ts"), makeIndexServerBoilerplate())
+
+    //create database config file
+    fs.writeFileSync(path.join(project_path, "src/app/data/cent.database.ts"), makeDbConfigBoilerplate())
+
+    //create welcome controller file
+    fs.writeFileSync(path.join(project_path, "src/app/controller/welcome/welcome.controller.ts"), makeWelcomeController())
+
+
+    //create .env file
+    fs.writeFileSync(path.join(project_path, ".env"), makeEnvBoilerplate())
+
+    console.log(chalk.green("cent application dependencies has been installed successfully"))
+    console.log(chalk.green("your project is ready to code.. Good Luck!"))
+
+    runCmd(autoRunServer)
+    runBrowser("http://localhost:5555/welcome")
+}
+
 function CreateArguments() {
     const arguments = argv._[0];
     if (arguments) {
@@ -113,7 +274,24 @@ function CreateArguments() {
                     }
                 }
             }else if (commander === "serve") {
-                console.log("serve")
+                runServer()
+                runBrowser("http://localhost:5555/")
+            } else if (commander === "create") {
+                const moduleName = argv._[1];
+                if (moduleType === "app") {
+                    if (moduleName) {
+                        console.log(__dirname)
+                    } else {
+                        prompt({
+                            type: "input",
+                            name: "appname",
+                            message: "your project name ?",
+                            default: __dirname.split("\\")[__dirname.split("\\").length - 1]
+                        }).then((answer) => {
+                            createFilesProject(answer.appname)
+                        })
+                    }
+                }
             }
         }
     }
