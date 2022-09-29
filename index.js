@@ -219,7 +219,7 @@ function createFilesProject(project_name) {
     /**
      * installing dependencies and more file
      */
-    const installDepsCommand = `cd ${project_name} && npm install --save-dev @types/node ts-node @centjs/core @centjs/orm @types/cors @centjs/data reflect-metadata typescript @types/mssql @types/mysql @types/pg && npm install express dotenv cors mysql mssql pg`
+    const installDepsCommand = `cd ${project_name} && npm install --save-dev @types/express @types/node ts-node @centjs/core @centjs/orm @types/cors @centjs/data reflect-metadata typescript @types/mssql @types/mysql @types/pg && npm install express dotenv cors mysql mssql pg`
     const initGit = `cd ${project_name} && git init && echo node_modules>>.gitignore`
     const autoRunServer = `cd ${project_name} && npm run dev`
     
